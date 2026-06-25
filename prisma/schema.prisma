@@ -1,0 +1,110 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Customer {
+  id          String   @id @default(cuid())
+  name        String
+  email       String   @unique
+  phone       String?
+
+  createdAt   DateTime @default(now())
+
+  orders      Order[]
+}
+
+model Order {
+  id              String   @id @default(cuid())
+
+  orderNumber     String   @unique
+
+  productName     String
+
+  amount          Float
+
+  productType     ProductType
+
+  delivered       Boolean @default(false)
+
+  purchaseDate    DateTime
+
+  createdAt       DateTime @default(now())
+
+  customerId      String
+  customer        Customer @relation(fields: [customerId], references: [id])
+
+  refunds         RefundRequest[]
+}
+
+model RefundRequest {
+  id              String   @id @default(cuid())
+
+  reason          String
+
+  status          RefundStatus @default(PENDING)
+
+  aiDecision      String?
+
+  aiReasoning     String?
+
+  aiResponse      String?
+
+  createdAt       DateTime @default(now())
+
+  orderId         String
+  order           Order @relation(fields: [orderId], references: [id])
+
+  messages        ChatMessage[]
+
+  logs            AgentLog[]
+}
+
+model ChatMessage {
+  id              String @id @default(cuid())
+
+  role            MessageRole
+
+  content         String
+
+  createdAt       DateTime @default(now())
+
+  refundId        String
+  refund          RefundRequest @relation(fields: [refundId], references: [id])
+}
+
+model AgentLog {
+  id              String @id @default(cuid())
+
+  eventType       String
+
+  message         String
+
+  createdAt       DateTime @default(now())
+
+  refundId        String
+  refund          RefundRequest @relation(fields: [refundId], references: [id])
+}
+
+enum ProductType {
+  PHYSICAL
+  DIGITAL
+  SUBSCRIPTION
+}
+
+enum RefundStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  MANAGER_REVIEW
+}
+
+enum MessageRole {
+  USER
+  ASSISTANT
+  SYSTEM
+}
