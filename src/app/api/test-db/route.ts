@@ -1,12 +1,11 @@
-import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db/prisma";
+import { NextResponse } from "next/server";
 
 export async function GET() {
-  const users = await prisma.user.findMany();
+  await prisma.$connect();
 
   return NextResponse.json({
     success: true,
-    count: users.length,
-    users,
+    message: "Database connected",
   });
 }
